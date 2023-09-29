@@ -5,9 +5,9 @@ name: Python package
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -17,23 +17,25 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Poetry
-      uses: abatilo/actions-poetry@v2
-    - name: Setup a local virtual environment
-      run: |
-        poetry config virtualenvs.create true --local
-        poetry config virtualenvs.in-project true --local
-    - name: Define a change for the virtual environment based on the dependencies
-      uses: actions/cache@v3
-      with:
-        path: ./.venv
-        key: venv-${{ hashFiles('poetry.lock') }}
-    - name: Install dependencies
-      run: poetry install
-    - name: Lint with black
-      uses: psf/black@stable
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Setup a local virtual environment
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      - name: Define a change for the virtual environment based on the dependencies
+        uses: actions/cache@v3
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+      - name: Install dependencies
+        run: poetry install
+      - name: Lint with black
+        uses: psf/black@stable
+      - name: Run tests
+        run: poetry run pytest
