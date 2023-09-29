@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "wg-config"
+version = "0.1.0"
+description = ""
+authors = ["Nima Roomi <nimar@firehousealerting.com>"]
+readme = "README.md"
+packages = [{ include = "wg_config" }]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+wgconfig = "^1.0.0"
+rich = "^13.5.3"
+typer = "^0.9.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.291"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+wg-config = 'wg_config:app'
+
+[tool.ruff]
+select = [
+	"F",   # pyflakes
+	"E",   # pycodestyle errors
+	"W",   # pycodestyle warnings
+	"I",   # isort
+	"N",   # pep8-naming
+	"FBT", # flake8-boolean-trap
+	"B",   # flake8-bugbear
+	"A",   # flake8-builtins
+	"COM", # flake8-commas
+	"C4",  # flake8-comprehensions
+	"DTZ", # flake8-datetimez
+	"SLF", # flake8-self
+	"SIM", # flake8-simplify
+	"ERA", # eradicate
+]
+ignore = [
+	"E501", # line too long, handled by black
+]
+ignore-init-module-imports = true
+
+[tool.ruff.isort]
+force-single-line = true
