@@ -48,7 +48,8 @@ jobs:
       - name: Build wheel and source distributions
         run: poetry build
       - name: Build executable with PyInstaller
-        run: >
+        run: |
+          source "$(poetry env info --path)/bin/activate"
           python -m PyInstaller -F --name ${{ matrix.asset_name }} wg_config/__main__.py
       - name: Quickly test executable
         run: |
