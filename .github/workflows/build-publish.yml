@@ -1,6 +1,9 @@
 name: Build and publish
 
 on:
+  release:
+    types: [published]
+  pull_request:
   push:
     branches:
       - main
@@ -9,6 +12,7 @@ jobs:
   build:
     name: Build distribution
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'
     steps:
       - uses: actions/checkout@v4
       - name: Setup latest Python
@@ -31,58 +35,81 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  publish-to-pypi:
-    name: Publish Python distribution to PyPI
-    if: startsWith(github.ref, 'refs/tags/') # only publish to PyPI on tag pushes
-    needs:
-      - build
+  # publish-to-pypi:
+  #   name: Publish Python distribution to PyPI
+  #   if: github.event_name == 'release'
+  #   needs:
+  #     - build
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/wg-config # Replace <package-name> with your PyPI project name
+  #   permissions:
+  #     id-token: write # IMPORTANT: mandatory for trusted publishing
+  #   steps:
+  #     - name: Download all the dists
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: python-package-distributions
+  #         path: dist/
+  #     - name: Publish distribution to PyPI
+  #       uses: pypa/gh-action-pypi-publish@v1.8.11
+
+  generate_wheels_matrix:
+    name: generate wheels matrix
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/wg-config # Replace <package-name> with your PyPI project name
-    permissions:
-      id-token: write # IMPORTANT: mandatory for trusted publishing
+    outputs:
+      include: ${{ steps.set-matrix.outputs.include }}
     steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v3
-        with:
-          name: python-package-distributions
-          path: dist/
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.11
+      - uses: actions/checkout@v4
+      - name: Install cibuildwheel and pypyp
+        run: |
+          pipx install cibuildwheel==2.15.0
+          pipx install pypyp==1
+      - name: generate matrix
+        if: github.event_name != 'pull_request'
+        run: |
+          {
+            cibuildwheel --print-build-identifiers --platform linux \
+            | pyp 'json.dumps({"only": x, "os": "ubuntu-latest"})' \
+            && cibuildwheel --print-build-identifiers --platform macos \
+            | pyp 'json.dumps({"only": x, "os": "macos-latest"})' \
+            && cibuildwheel --print-build-identifiers --platform windows \
+            | pyp 'json.dumps({"only": x, "os": "windows-latest"})'
+          } | pyp 'json.dumps(list(map(json.loads, lines)))' > /tmp/matrix
+        env:
+          CIBW_ARCHS_LINUX: x86_64
+          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_ARCHS_WINDOWS: AMD64
+      - name: generate matrix (PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          {
+            cibuildwheel --print-build-identifiers --platform linux \
+            | pyp 'json.dumps({"only": x, "os": "ubuntu-latest"})'
+          } | pyp 'json.dumps(list(map(json.loads, lines)))' > /tmp/matrix
+        env:
+          CIBW_BUILD: "cp38-* cp312-*"
+          CIBW_ARCHS_LINUX: x86_64
+      - id: set-matrix
+        run: echo "include=$(cat /tmp/matrix)" | tee -a $GITHUB_OUTPUT
 
   github-release:
     name: >-
       Sign the Python 🐍 distribution 📦 with Sigstore
       and upload them to GitHub Release
     needs:
-      - publish-to-pypi
+      - build
     runs-on: ubuntu-latest
-
     permissions:
       contents: write # IMPORTANT: mandatory for making GitHub Releases
       id-token: write # IMPORTANT: mandatory for sigstore
-
     steps:
       - name: Download all the dists
         uses: actions/download-artifact@v3
         with:
           name: python-package-distributions
           path: dist/
-      - name: Sign the dists with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v1.2.3
-        with:
-          inputs: >-
-            ./dist/*.tar.gz
-            ./dist/*.whl
-      - name: Create GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create
-          '${{ github.ref_name }}'
-          --repo '${{ github.repository }}'
-          --notes ""
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -94,23 +121,22 @@ jobs:
           '${{ github.ref_name }}' dist/**
           --repo '${{ github.repository }}'
 
-  publish-to-testpypi:
-    name: Publish Python 🐍 distribution 📦 to TestPyPI
+  update-stable-branch:
+    name: Update stable branch
     needs:
       - build
     runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/wg-config
+    if: github.event_name == 'release'
     permissions:
-      id-token: write # IMPORTANT: mandatory for trusted publishing
+      contents: write
     steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v3
+      - name: Checkout stable branch
+        uses: actions/checkout@v4
         with:
-          name: python-package-distributions
-          path: dist/
-      - name: Publish distribution 📦 to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
+          ref: stable
+          fetch-depth: 0
+      - if: github.event_name == 'release'
+        name: Update stable branch to release tag & push
+        run: |
+          git reset --hard ${{ github.event.release.tag_name }}
+          git push
