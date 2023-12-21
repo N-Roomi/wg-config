@@ -1,5 +1,17 @@
 import dataclasses
 from typing import Optional
+from typing import TypedDict
+from typing import Union
+from typing import overload
+
+
+class PeerDict(TypedDict, total=False):
+    PublicKey: str
+    AllowedIPs: str
+    Endpoint: Optional[str]
+    PersistentKeepalive: Optional[int]
+    PresharedKey: Optional[str]
+    Name: Optional[str]
 
 
 @dataclasses.dataclass
@@ -15,7 +27,15 @@ class Peer:
     def from_wgconfig(cls, data: dict):
         return peer_from_wgconfig(data)
 
-    def to_wgconfig(self, *, as_json: bool = False):
+    @overload
+    def to_wgconfig(self, *, as_json: bool = False) -> PeerDict:
+        ...
+
+    @overload
+    def to_wgconfig(self, *, as_json: bool = True) -> str:
+        ...
+
+    def to_wgconfig(self, *, as_json: bool = False) -> Union[PeerDict, str]:
         if as_json:
             import json
 
@@ -56,8 +76,8 @@ def peer_from_wgconfig(data: dict):
     )
 
 
-def peer_to_wgconfig(data: Peer):
-    peer: dict = {
+def peer_to_wgconfig(data: Peer) -> PeerDict:
+    peer: PeerDict = {
         "PublicKey": data.PublicKey,
         "AllowedIPs": data.AllowedIPs,
     }
