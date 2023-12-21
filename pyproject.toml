@@ -2,7 +2,7 @@
 name = "wg-config"
 version = "0.1.0"
 description = ""
-authors = ["Nima Roomi <nimar@firehousealerting.com>"]
+authors = ["Nima Roomi <nroomia@gmail.com>"]
 readme = "README.md"
 packages = [{ include = "wg_config" }]
 
