@@ -24,20 +24,6 @@ app = typer.Typer(name="wg_config")
 
 
 @app.command()
-def list(  # noqa: A001
-    interface: str,
-    wg_config: WgConfigEnv = DEFAULT_WG_PATH,
-):
-    wg = wireguard_factory(wg_config, interface)
-    peers = [i for i in wg.peers]
-    peers.sort(key=lambda x: x.AllowedIPs)
-    table = Table("ip", "public key", title=f"{interface} peers")
-    for peer in peers:
-        table.add_row(peer.AllowedIPs, peer.PublicKey)
-    console.print(table)
-
-
-@app.command()
 def add(
     interface: str,
     public_key: str,
@@ -87,14 +73,21 @@ def delete(
     wg.save()
 
 
+# TODO: add an init command that will create the interface
+
+
 @app.command()
-def test(
-    number: int,
-    name: OptionalArgument = None,
+def list(  # noqa: A001
+    interface: str,
+    wg_config: WgConfigEnv = DEFAULT_WG_PATH,
 ):
-    print(f"test {number} {name}")
-    greeting = Prompt.ask("What is your greeting")
-    print(f"{greeting} {name}")
+    wg = wireguard_factory(wg_config, interface)
+    peers = [i for i in wg.peers]
+    peers.sort(key=lambda x: x.AllowedIPs)
+    table = Table("ip", "public key", title=f"{interface} peers")
+    for peer in peers:
+        table.add_row(peer.AllowedIPs, peer.PublicKey)
+    console.print(table)
 
 
 @app.command()
@@ -106,3 +99,18 @@ def next(  # noqa: A001
     wg = wireguard_factory(wg_config, interface)
     next_ip = wg.get_next_peer_interface()
     print(f"next available ip is {next_ip}")
+
+
+@app.command()
+def test(
+    number: int,
+    name: OptionalArgument = None,
+):
+    print(f"test {number} {name}")
+    greeting = Prompt.ask("What is your greeting")
+    print(f"{greeting} {name}")
+
+
+# TODO: add a command to update the interface
+
+# TODO: add a command to update a peer
