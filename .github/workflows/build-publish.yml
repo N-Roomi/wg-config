@@ -1,18 +1,14 @@
 name: Build and publish
 
 on:
-  release:
-    types: [published]
-  pull_request:
   push:
     branches:
       - main
 
 jobs:
   build:
-    name: sdist + pure wheel
+    name: Build distribution
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
     steps:
       - uses: actions/checkout@v4
       - name: Setup latest Python
@@ -27,8 +23,6 @@ jobs:
           poetry config virtualenvs.in-project true --local
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
-      - name: Install project
-        run: poetry install --no-interaction
       - name: Build wheel and source distributions
         run: poetry build
       - name: Store the distribution packages
