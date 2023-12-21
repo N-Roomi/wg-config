@@ -47,7 +47,9 @@ class Wireguard:
             self.config.add_attr(peer.PublicKey, "Endpoint", peer.Endpoint)
         if peer.PersistentKeepalive:
             self.config.add_attr(
-                peer.PublicKey, "PersistentKeepalive", peer.PersistentKeepalive
+                peer.PublicKey,
+                "PersistentKeepalive",
+                peer.PersistentKeepalive,
             )
         if peer.PresharedKey:
             self.config.add_attr(peer.PublicKey, "PresharedKey", peer.PresharedKey)
