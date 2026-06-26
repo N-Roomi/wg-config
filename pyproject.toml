@@ -1,29 +1,33 @@
-[tool.poetry]
+[project]
 name = "wg-config"
 version = "0.1.0"
 description = ""
-authors = ["Nima Roomi <nroomia@gmail.com>"]
+authors = [{ name = "Nima Roomi", email = "nroomia@gmail.com" }]
 readme = "README.md"
-packages = [{ include = "wg_config" }]
+requires-python = ">=3.8"
+dependencies = [
+	"wgconfig>=1.0.0,<2.0.0",
+	"rich>=13.5.3,<14.0.0",
+	"typer>=0.9.0,<0.10.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-wgconfig = "^1.0.0"
-rich = "^13.5.3"
-typer = "^0.9.0"
+[project.scripts]
+wg-config = "wg_config:app"
 
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.15.20"
-pytest = "^7.4.2"
-black = "^23.9.1"
-pre-commit = "^3.4.0"
+[dependency-groups]
+dev = [
+	"ruff>=0.15.20,<0.16",
+	"pytest>=7.4.2,<8",
+	"black>=23.9.1,<24",
+	"pre-commit>=3.4.0,<4",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
 
-[tool.poetry.scripts]
-wg-config = 'wg_config:app'
+[tool.uv.build-backend]
+module-root = ""
 
 [tool.ruff]
 select = [

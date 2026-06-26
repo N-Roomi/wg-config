@@ -18,28 +18,12 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        id: setup-python
-        uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v2
-      - name: Setup a local virtual environment
-        run: |
-          poetry config virtualenvs.create true --local
-          poetry config virtualenvs.in-project true --local
-      - name: Define a change for the virtual environment based on the dependencies
-        id: cached-poetry-dependencies
-        uses: actions/cache@v3
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          enable-cache: true
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-      - name: Install project
-        run: poetry install --no-interaction
+        run: uv sync --python ${{ matrix.python-version }}
       - name: Lint with black
         if: matrix.python-version == '3.11'
         uses: psf/black@stable
@@ -47,4 +31,4 @@ jobs:
         if: matrix.python-version == '3.11'
         uses: chartboost/ruff-action@v1
       - name: Run tests
-        run: poetry run pytest
+        run: uv run --python ${{ matrix.python-version }} pytest
