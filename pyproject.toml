@@ -18,7 +18,6 @@ wg-config = "wg_config:app"
 dev = [
 	"ruff>=0.15.20,<0.16",
 	"pytest>=7.4.2,<8",
-	"black>=23.9.1,<24",
 	"pre-commit>=3.4.0,<4",
 ]
 
@@ -47,7 +46,8 @@ select = [
 	"ERA", # eradicate
 ]
 ignore = [
-	"E501", # line too long, handled by black
+	"E501",   # line too long, handled by the formatter
+	"COM812", # trailing comma, handled by the formatter
 ]
 ignore-init-module-imports = true
 
