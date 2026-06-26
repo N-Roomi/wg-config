@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional
 
 import typer
-from rich import print
 from rich.console import Console
 from rich.prompt import Confirm
 from rich.prompt import Prompt
@@ -31,8 +30,8 @@ def add(
     wg_config: WgConfigEnv = DEFAULT_WG_PATH,
 ):
     if not WG_KEY_REGEX.match(public_key):
-        print("Invalid public key")
-        print("Aborting")
+        console.print("Invalid public key")
+        console.print("Aborting")
         return
     wg = wireguard_factory(wg_config, interface)
     if ip is None:
@@ -40,8 +39,8 @@ def add(
         console.print(f"Next available IP: {ip}")
     new_peer = Peer(PublicKey=public_key, AllowedIPs=ip)
     if wg.peer_exists(new_peer):
-        print("Peer exists")
-        print("Aborting")
+        console.print("Peer exists")
+        console.print("Aborting")
         return
     name = None
     if Confirm.ask("Would you like to name this peer"):
@@ -51,9 +50,11 @@ def add(
     table.add_row(new_peer.AllowedIPs, new_peer.PublicKey, new_peer.Name)
     console.print(table)
     if not (Confirm.ask("Is this correct")):
-        print("Aborting")
+        console.print("Aborting")
         return
-    print(f"Adding peer with public key {public_key} and ip {ip} to {interface}")
+    console.print(
+        f"Adding peer with public key {public_key} and ip {ip} to {interface}",
+    )
     wg.add_peer(new_peer)
     wg.save()
     console.print("Successfully added peer")
@@ -66,7 +67,7 @@ def delete(
     ip: Optional[str] = None,
     wg_config: WgConfigEnv = DEFAULT_WG_PATH,
 ):
-    print(f"Deleting peer with public key {public_key} from {interface}")
+    console.print(f"Deleting peer with public key {public_key} from {interface}")
     wg = wireguard_factory(wg_config, interface)
     peer = wg.get_peer(public_key=public_key, ip=ip)
     wg.delete_peer(peer)
@@ -95,10 +96,10 @@ def next(  # noqa: A001
     interface: str,
     wg_config: WgConfigEnv = DEFAULT_WG_PATH,
 ):
-    print(f"Getting next ip for {interface}")
+    console.print(f"Getting next ip for {interface}")
     wg = wireguard_factory(wg_config, interface)
     next_ip = wg.get_next_peer_interface()
-    print(f"next available ip is {next_ip}")
+    console.print(f"next available ip is {next_ip}")
 
 
 @app.command()
@@ -106,9 +107,9 @@ def test(
     number: int,
     name: OptionalArgument = None,
 ):
-    print(f"test {number} {name}")
+    console.print(f"test {number} {name}")
     greeting = Prompt.ask("What is your greeting")
-    print(f"{greeting} {name}")
+    console.print(f"{greeting} {name}")
 
 
 # TODO: add a command to update the interface

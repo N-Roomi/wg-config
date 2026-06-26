@@ -59,9 +59,7 @@ class Wireguard:
         if peer.PublicKey in known_public:
             return True
         known_ips = {p.AllowedIPs for p in self.peers}
-        if peer.AllowedIPs in known_ips:
-            return True
-        return False
+        return peer.AllowedIPs in known_ips
 
     def delete_peer(self, peer: Peer):
         if not self.peer_exists(peer):
