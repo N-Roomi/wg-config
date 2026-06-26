@@ -28,12 +28,10 @@ class Peer:
         return peer_from_wgconfig(data)
 
     @overload
-    def to_wgconfig(self, *, as_json: bool = False) -> PeerDict:
-        ...
+    def to_wgconfig(self, *, as_json: bool = False) -> PeerDict: ...
 
     @overload
-    def to_wgconfig(self, *, as_json: bool = True) -> str:
-        ...
+    def to_wgconfig(self, *, as_json: bool = True) -> str: ...
 
     def to_wgconfig(self, *, as_json: bool = False) -> Union[PeerDict, str]:
         if as_json:
