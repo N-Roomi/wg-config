@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: uv sync
       - name: Build executable with PyInstaller
-        run: uv run --with pyinstaller pyinstaller -F --name ${{ matrix.asset_name }} wg_config/__main__.py --onefile
+        run: uv run --with pyinstaller pyinstaller --onefile --name ${{ matrix.asset_name }} wg_config/__main__.py
       - name: Quickly test executable
         run: |
           ./dist/${{ matrix.asset_name }} --help
